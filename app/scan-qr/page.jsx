@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import TransactionAlert from '../components/TransactionAlert'
+import PaymentAuth from '../components/PaymentAuth'
 
 export default function ScanQRPage() {
   const router = useRouter()
   const [showSuccess, setShowSuccess] = useState(false)
-  // Simulated QR code payment amount
+  const [showAuth, setShowAuth] = useState(false)
   const [amount, setAmount] = useState('')
   const [isScanning, setIsScanning] = useState(false)
 
@@ -17,18 +18,29 @@ export default function ScanQRPage() {
     setTimeout(() => {
       setAmount('1000') // Simulated amount from QR code
       setIsScanning(false)
-      setShowSuccess(true)
-      // Redirect after showing success message
-      setTimeout(() => {
-        setShowSuccess(false)
-        router.push('/home')
-      }, 3000)
+      setShowAuth(true) // Show auth instead of immediate success
     }, 1500) // Simulate scanning delay
+  }
+
+  const handleAuthSuccess = () => {
+    setShowAuth(false)
+    setShowSuccess(true)
+    setTimeout(() => {
+      setShowSuccess(false)
+      router.push('/home')
+    }, 3000)
   }
 
   return (
     <div className="min-h-screen bg-white p-4">
       {showSuccess && <TransactionAlert amount={amount} />}
+      {showAuth && (
+        <PaymentAuth 
+          amount={amount}
+          onSuccess={handleAuthSuccess}
+          onCancel={() => setShowAuth(false)}
+        />
+      )}
       <div className="max-w-xl mx-auto">
         <button
           onClick={() => router.back()}

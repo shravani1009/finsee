@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import TransactionAlert from '../components/TransactionAlert'
+import PaymentAuth from '../components/PaymentAuth'
 
 export default function PayContactsPage() {
   const router = useRouter()
   const [showSuccess, setShowSuccess] = useState(false)
+  const [showAuth, setShowAuth] = useState(false)
   const [selectedContact, setSelectedContact] = useState(null)
   const [amount, setAmount] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -18,8 +20,6 @@ export default function PayContactsPage() {
     { name: 'bob', phone: '+1 578 889 125' },
     { name: 'charlie', phone: '+1 589 669 235' },
     { name: 'karan', phone: '+1 897 558 204' },
-    
-
   ]
 
   const handleContactSelect = (contact) => {
@@ -29,12 +29,17 @@ export default function PayContactsPage() {
   const handlePayment = (e) => {
     e.preventDefault()
     if (amount && selectedContact) {
-      setShowSuccess(true)
-      setTimeout(() => {
-        setShowSuccess(false)
-        router.push('/home')
-      }, 3000)
+      setShowAuth(true) // Show auth modal instead of immediate success
     }
+  }
+
+  const handleAuthSuccess = () => {
+    setShowAuth(false)
+    setShowSuccess(true)
+    setTimeout(() => {
+      setShowSuccess(false)
+      router.push('/home')
+    }, 3000)
   }
 
   const filteredContacts = contacts.filter(contact =>
@@ -45,6 +50,13 @@ export default function PayContactsPage() {
   return (
     <div className="min-h-screen bg-white p-4">
       {showSuccess && <TransactionAlert amount={amount} />}
+      {showAuth && (
+        <PaymentAuth 
+          amount={amount}
+          onSuccess={handleAuthSuccess}
+          onCancel={() => setShowAuth(false)}
+        />
+      )}
       <div className="max-w-xl mx-auto">
         <button
           onClick={() => router.back()}

@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import TransactionAlert from '../components/TransactionAlert'
+import PaymentAuth from '../components/PaymentAuth'
 
 export default function BankTransferPage() {
   const router = useRouter()
   const [showSuccess, setShowSuccess] = useState(false)
+  const [showAuth, setShowAuth] = useState(false)
   const [formData, setFormData] = useState({
     bank: '',
     accountNumber: '',
@@ -25,17 +27,29 @@ export default function BankTransferPage() {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (formData.bank && formData.accountNumber && formData.amount) {
-      setShowSuccess(true)
-      setTimeout(() => {
-        setShowSuccess(false)
-        router.push('/home')
-      }, 3000)
+      setShowAuth(true) // Show authentication modal instead of immediate success
     }
+  }
+
+  const handleAuthSuccess = () => {
+    setShowAuth(false)
+    setShowSuccess(true)
+    setTimeout(() => {
+      setShowSuccess(false)
+      router.push('/home')
+    }, 3000)
   }
 
   return (
     <div className="min-h-screen bg-white p-4">
       {showSuccess && <TransactionAlert amount={formData.amount} />}
+      {showAuth && (
+        <PaymentAuth 
+          amount={formData.amount}
+          onSuccess={handleAuthSuccess}
+          onCancel={() => setShowAuth(false)}
+        />
+      )}
       <div className="max-w-xl mx-auto">
         <button
           onClick={() => router.back()}
