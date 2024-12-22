@@ -25,7 +25,7 @@ export default function FinSeeAssistant() {
   useEffect(() => {
     if (!initialAnnouncementMade.current) {
       const welcomeMessage =
-        "Hello! I'm FinSee, your AI financial advisor. How can I help you with your financial questions today?";
+        "Hello! I'm FinSee, your AI financial advisor specialized in Indian markets. How can I help you with your financial planning today?";
       setMessages([{ type: "assistant", text: welcomeMessage }]);
       speak(welcomeMessage);
       initialAnnouncementMade.current = true;
@@ -35,7 +35,6 @@ export default function FinSeeAssistant() {
       }, 2000);
     }
 
-    // Cleanup function
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
@@ -47,8 +46,14 @@ export default function FinSeeAssistant() {
   const speak = (text) => {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
     utterance.onend = () => {
       console.log("Finished speaking");
+      if (!isRecording) {
+        startRecording();
+      }
     };
     window.speechSynthesis.speak(utterance);
   };
@@ -57,37 +62,42 @@ export default function FinSeeAssistant() {
     if (!query.trim()) return;
 
     setIsLoading(true);
+    stopRecording(); // Stop recording while processing
 
     try {
       setMessages((prev) => [...prev, { type: "user", text: query }]);
 
-      let response = "";
+      // Make API call to Groq
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query }),
+      });
 
-      if (query.toLowerCase().includes("balance")) {
-        response = "Your current balance is 5000 rupees";
-      } else if (query.toLowerCase().includes("help")) {
-        response =
-          "I can help you with checking balance, making transfers, and other banking services. What would you like to do?";
-      } else {
-        response = `I understand you're asking about "${query}". How can I assist you further?`;
+      if (!response.ok) {
+        throw new Error('Failed to get response from AI');
       }
 
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          { type: "assistant", text: response },
-        ]);
-        speak(response);
-        setIsLoading(false);
-      }, 1000);
+      const data = await response.json();
+      const aiResponse = data.response;
+
+      setMessages((prev) => [
+        ...prev,
+        { type: "assistant", text: aiResponse },
+      ]);
+      speak(aiResponse);
+
     } catch (error) {
       console.error("Chat Error:", error);
-      const errorMessage = "I'm sorry, I encountered an error. Please try again.";
+      const errorMessage = "I apologize, but I encountered an error. Please try asking your question again.";
       setMessages((prev) => [
         ...prev,
         { type: "assistant", text: errorMessage },
       ]);
       speak(errorMessage);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -106,7 +116,7 @@ export default function FinSeeAssistant() {
 
   const startRecording = () => {
     if (!window.webkitSpeechRecognition) {
-      alert("Speech recognition is not supported in this browser");
+      alert("Speech recognition is not supported in this browser. Please use Chrome.");
       return;
     }
 
@@ -114,6 +124,7 @@ export default function FinSeeAssistant() {
       recognitionRef.current = new window.webkitSpeechRecognition();
       recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'en-IN'; // Set to Indian English
 
       recognitionRef.current.onstart = () => {
         console.log("Voice recognition started");
@@ -133,14 +144,13 @@ export default function FinSeeAssistant() {
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         if (event.error !== 'no-speech') {
-          console.log("Restarting recognition after error...");
           restartRecording();
         }
       };
 
       recognitionRef.current.onend = () => {
-        console.log("Recognition ended, restarting...");
-        if (isRecording) {
+        console.log("Recognition ended");
+        if (isRecording && !isLoading) {
           restartRecording();
         }
       };
@@ -162,10 +172,16 @@ export default function FinSeeAssistant() {
     <div className="max-w-md mx-auto min-h-screen bg-white flex flex-col">
       <div className="bg-blue-600 p-4 pb-6 rounded-b-[30px]">
         <div className="flex items-center justify-between mb-2">
-          <button className="p-2" onClick={() => router.back()}>
+          <button 
+            className="p-2" 
+            onClick={() => {
+              stopRecording();
+              router.back();
+            }}
+          >
             <ArrowLeft className="w-6 h-6 text-white" />
           </button>
-          <span className="text-white font-medium">AI Assistant</span>
+          <span className="text-white font-medium">FinSee AI Assistant</span>
           <div className="w-6 h-6" />
         </div>
       </div>
