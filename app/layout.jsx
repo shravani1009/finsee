@@ -8,6 +8,7 @@ import { SpeechProvider } from '../context/SpeechContext';
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
+  manifest: "/manifest.json",
   title: 'Voice Assistant App',
   description: 'Personal voice assistant application',
 }
