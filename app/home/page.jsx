@@ -2,6 +2,20 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from 'next/navigation';
+import { 
+  QrCode, 
+  Smartphone, 
+  Users, 
+  Building2, 
+  Wallet, 
+  Headphones, 
+  Mic, 
+  Square,
+  ArrowLeft,
+  Home,
+  User,
+  Menu
+} from 'lucide-react';
 
 export default function HomePage() {
   const [isRecording, setIsRecording] = useState(false);
@@ -12,12 +26,12 @@ export default function HomePage() {
 
   // Banking services with their voice commands
   const bankingServices = [
-    { icon: '🔍', text: 'Scan QR code', route: '/scan-qr', commands: ['scan', 'scan qr', 'qr code'] },
-    { icon: '📱', text: 'Pay phone number', route: '/pay-phone', commands: ['pay phone', 'phone payment'] },
-    { icon: '👥', text: 'Pay contacts', route: '/pay-contacts', commands: ['pay contacts', 'contact payment'] },
-    { icon: '🏦', text: 'Bank transfer', route: '/bank-transfer', commands: ['transfer', 'bank transfer'] },
-    { icon: '💰', text: 'Check Balance', route: '/check-balance', commands: ['balance', 'check balance'] },
-    { icon: '🤖', text: 'Assistance', route: '/assistant', commands: ['assistance', 'assistant', 'help me'] },
+    { icon: <QrCode size={24} className="text-blue-600" />, text: 'Scan QR code', route: '/scan-qr', commands: ['scan', 'scan qr', 'qr code'] },
+    { icon: <Smartphone size={24} className="text-blue-600" />, text: 'Pay phone number', route: '/pay-phone', commands: ['pay phone', 'phone payment'] },
+    { icon: <Users size={24} className="text-blue-600" />, text: 'Pay contacts', route: '/pay-contacts', commands: ['pay contacts', 'contact payment'] },
+    { icon: <Building2 size={24} className="text-blue-600" />, text: 'Bank transfer', route: '/bank-transfer', commands: ['transfer', 'bank transfer'] },
+    { icon: <Wallet size={24} className="text-blue-600" />, text: 'Check Balance', route: '/check-balance', commands: ['balance', 'check balance'] },
+    { icon: <Headphones size={24} className="text-blue-600" />, text: 'Assistance', route: '/assistant', commands: ['assistance', 'assistant', 'help me'] }
   ];
 
   // Text-to-speech function
@@ -120,64 +134,97 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto p-4">
-        <h1 className="text-2xl font-bold text-blue-600 mb-6">Banking Services</h1>
-
+    <div className="max-w-md mx-auto min-h-screen bg-white relative">
+      {/* Header */}
+      <div className="bg-blue-600 p-4 pb-8 rounded-b-[30px]">
+        <div className="flex items-center justify-between mb-2">
+          <button 
+            className="p-2" 
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="w-6 h-6 text-white" />
+          </button>
+          <span className="text-white font-medium">Home</span>
+          <button className="p-2">
+            <User className="w-6 h-6 text-white" />
+          </button>
+        </div>
+        <h1 className="text-xl text-white mt-4 mb-6 px-2">Banking Services</h1>
+        
         {/* Banking Services Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-          {bankingServices.map((service, index) => (
-            <div
-              key={index}
-              className={`${
-                service.text === 'Assistance' 
-                  ? 'bg-blue-100 border-2 border-blue-400' 
-                  : 'bg-blue-50'
-              } p-4 rounded-lg text-center hover:bg-blue-100 transition-colors cursor-pointer`}
-              onClick={() => {
-                speak(`Opening ${service.text}`);
-                router.push(service.route);
-              }}
-            >
-              <div className="text-2xl mb-2">{service.icon}</div>
-              <div className="text-sm font-medium text-blue-800">{service.text}</div>
-              {service.text === 'Assistance' && (
-                <div className="text-xs text-blue-600 mt-1">
-                  Available 24/7
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="grid grid-cols-2 gap-6">
+            {bankingServices.map((service, index) => (
+              <button
+                key={index}
+                className="flex flex-col items-center gap-3 p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+                onClick={() => {
+                  speak(`Opening ${service.text}`);
+                  router.push(service.route);
+                }}
+              >
+                <div className="bg-white p-3 rounded-xl shadow-sm">
+                  {service.icon}
                 </div>
-              )}
+                <span className="text-sm text-gray-700 text-center leading-tight font-medium">
+                  {service.text}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ChatBot */}
+      <div className="p-4 mt-6">
+        <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-4 rounded-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-white p-2 rounded-full">
+                <Headphones className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <div className="text-white font-medium">FinSee</div>
+                <div className="text-white/80 text-sm">Always active</div>
+              </div>
             </div>
-          ))}
+            <button className="p-2">
+              <Mic className="w-5 h-5 text-white" />
+            </button>
+          </div>
         </div>
 
         {/* Voice Command Transcript */}
         {transcript && (
-          <div className="w-full rounded-md border p-4 bg-white mb-4">
-            <p className="text-sm font-medium">Last command:</p>
-            <p className="text-sm text-gray-600">{transcript}</p>
+          <div className="mt-4 bg-gray-50 rounded-xl p-4">
+            <p className="text-sm font-medium text-gray-600">Last command:</p>
+            <p className="text-sm text-gray-800">{transcript}</p>
           </div>
         )}
+      </div>
 
-        {/* Microphone Control */}
-        <div className="fixed bottom-4 right-4">
-          <button
-            onClick={isRecording ? stopRecording : startRecording}
-            className={`flex items-center justify-center ${
-              isRecording ? 'bg-red-400 hover:bg-red-500' : 'bg-blue-400 hover:bg-blue-500'
-            } rounded-full w-16 h-16 focus:outline-none transition-colors duration-200`}
-          >
-            {isRecording ? (
-              <svg className="h-8 w-8" viewBox="0 0 24 24">
-                <path fill="white" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 256 256" className="w-8 h-8 text-white">
-                <path
-                  fill="currentColor"
-                  d="M128 176a48.05 48.05 0 0 0 48-48V64a48 48 0 0 0-96 0v64a48.05 48.05 0 0 0 48 48ZM96 64a32 32 0 0 1 64 0v64a32 32 0 0 1-64 0Zm40 143.6V232a8 8 0 0 1-16 0v-24.4A80.11 80.11 0 0 1 48 128a8 8 0 0 1 16 0a64 64 0 0 0 128 0a8 8 0 0 1 16 0a80.11 80.11 0 0 1-72 79.6Z"
-                />
-              </svg>
-            )}
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100">
+        <div className="flex justify-around items-center p-4">
+          <button>
+            <Home className="w-6 h-6 text-blue-600" />
+          </button>
+          <div className="relative -mt-8">
+            <button
+              onClick={isRecording ? stopRecording : startRecording}
+              className={`flex items-center justify-center ${
+                isRecording ? 'bg-red-500' : 'bg-blue-600'
+              } rounded-full w-14 h-14 shadow-lg`}
+            >
+              {isRecording ? (
+                <Square className="h-6 w-6 text-white" />
+              ) : (
+                <Mic className="h-6 w-6 text-white" />
+              )}
+            </button>
+          </div>
+          <button>
+            <User className="w-6 h-6 text-gray-400" />
           </button>
         </div>
       </div>
