@@ -13,68 +13,40 @@ import {
   Square,
   ArrowLeft,
   Home,
-  User,
-  Menu
+  User
 } from 'lucide-react';
 
 export default function HomePage() {
+  const router = useRouter();
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
   const recognitionRef = useRef(null);
-  const router = useRouter();
   const initialAnnouncementMade = useRef(false);
 
-  // Banking services with their voice commands
   const bankingServices = [
     { icon: <QrCode size={24} className="text-blue-600" />, text: 'Scan QR code', route: '/scan-qr', commands: ['scan', 'scan qr', 'qr code'] },
     { icon: <Smartphone size={24} className="text-blue-600" />, text: 'Pay phone number', route: '/pay-phone', commands: ['pay phone', 'phone payment'] },
     { icon: <Users size={24} className="text-blue-600" />, text: 'Pay contacts', route: '/pay-contacts', commands: ['pay contacts', 'contact payment'] },
     { icon: <Building2 size={24} className="text-blue-600" />, text: 'Bank transfer', route: '/bank-transfer', commands: ['transfer', 'bank transfer'] },
     { icon: <Wallet size={24} className="text-blue-600" />, text: 'Check Balance', route: '/check-balance', commands: ['balance', 'check balance'] },
-    { icon: <Headphones size={24} className="text-blue-600" />, text: 'Assistance', route: '/assistant', commands: ['assistance', 'assistant', 'help me'] }
+    { icon: <Headphones size={24} className="text-blue-600" />, text: 'Assistance', route: '/assistant', commands: ['assistance', 'help me'] }
   ];
 
-  // Text-to-speech function
   const speak = (text) => {
-    // Cancel any ongoing speech
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     window.speechSynthesis.speak(utterance);
   };
 
-  // Initial announcement when page loads
-  useEffect(() => {
-    if (!initialAnnouncementMade.current) {
-      const welcomeMessage = `Welcome to banking services. Available options are: ${
-        bankingServices.map(service => service.text).join(', ')
-      }. Say 'assistant' or 'help me' anytime to get personalized assistance.`;
-      
-      setTimeout(() => {
-        speak(welcomeMessage);
-        initialAnnouncementMade.current = true;
-        startRecording();
-      }, 1000);
-    }
-  }, []);
-
-  // Handle voice commands
   const handleVoiceCommand = (command) => {
     const lowerCommand = command.toLowerCase();
+    console.log("Processing command:", lowerCommand);
 
-    // Help command
     if (lowerCommand.includes('help')) {
-      speak("Available commands are: check balance, transfer money, scan QR code, pay contacts, pay phone number, and assistant.");
+      speak("Available commands are: check balance, transfer money, scan QR code, pay contacts, pay phone number, and assistance.");
       return;
     }
 
-    // Specific handling for assistant
-    if (lowerCommand.includes('assistant') || lowerCommand.includes('help me')) {
-      speak("Opening virtual assistant to help you with your banking needs");
-      router.push('/assistant');
-      return;
-    }
-
-    // Check for matching service commands
     const matchedService = bankingServices.find(service =>
       service.commands.some(cmd => lowerCommand.includes(cmd))
     );
@@ -86,6 +58,11 @@ export default function HomePage() {
   };
 
   const startRecording = () => {
+    if (!window.webkitSpeechRecognition) {
+      alert("Speech recognition is not supported in this browser");
+      return;
+    }
+
     setIsRecording(true);
     recognitionRef.current = new window.webkitSpeechRecognition();
     recognitionRef.current.continuous = true;
@@ -123,8 +100,19 @@ export default function HomePage() {
     }
   };
 
-  // Cleanup on component unmount
   useEffect(() => {
+    if (!initialAnnouncementMade.current) {
+      const welcomeMessage = `Welcome to banking services. Available options are: ${
+        bankingServices.map(service => service.text).join(', ')
+      }. Say 'help' anytime to hear the commands again.`;
+      
+      setTimeout(() => {
+        speak(welcomeMessage);
+        initialAnnouncementMade.current = true;
+        startRecording();
+      }, 1000);
+    }
+
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
@@ -134,14 +122,10 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-white relative">
-      {/* Header */}
+    <div className="max-w-md mx-auto min-h-screen bg-white">
       <div className="bg-blue-600 p-4 pb-8 rounded-b-[30px]">
         <div className="flex items-center justify-between mb-2">
-          <button 
-            className="p-2" 
-            onClick={() => router.back()}
-          >
+          <button className="p-2" onClick={() => router.back()}>
             <ArrowLeft className="w-6 h-6 text-white" />
           </button>
           <span className="text-white font-medium">Home</span>
@@ -151,7 +135,6 @@ export default function HomePage() {
         </div>
         <h1 className="text-xl text-white mt-4 mb-6 px-2">Banking Services</h1>
         
-        {/* Banking Services Grid */}
         <div className="bg-white rounded-2xl p-4 shadow-sm">
           <div className="grid grid-cols-2 gap-6">
             {bankingServices.map((service, index) => (
@@ -166,7 +149,7 @@ export default function HomePage() {
                 <div className="bg-white p-3 rounded-xl shadow-sm">
                   {service.icon}
                 </div>
-                <span className="text-sm text-gray-700 text-center leading-tight font-medium">
+                <span className="text-sm text-gray-700 text-center leading-tight">
                   {service.text}
                 </span>
               </button>
@@ -175,7 +158,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ChatBot */}
       <div className="p-4 mt-6">
         <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-4 rounded-xl">
           <div className="flex items-center justify-between">
@@ -188,13 +170,10 @@ export default function HomePage() {
                 <div className="text-white/80 text-sm">Always active</div>
               </div>
             </div>
-            <button className="p-2">
-              <Mic className="w-5 h-5 text-white" />
-            </button>
+            <Mic className="w-5 h-5 text-white" />
           </div>
         </div>
 
-        {/* Voice Command Transcript */}
         {transcript && (
           <div className="mt-4 bg-gray-50 rounded-xl p-4">
             <p className="text-sm font-medium text-gray-600">Last command:</p>
@@ -203,7 +182,6 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100">
         <div className="flex justify-around items-center p-4">
           <button>
@@ -219,7 +197,7 @@ export default function HomePage() {
               {isRecording ? (
                 <Square className="h-6 w-6 text-white" />
               ) : (
-                <Mic className="h-6 w-6 text-white" />
+                <Mic className="h-6 h-6 text-white" />
               )}
             </button>
           </div>
