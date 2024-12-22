@@ -16,7 +16,8 @@ export default function HomePage() {
     { icon: '📱', text: 'Pay phone number', route: '/pay-phone', commands: ['pay phone', 'phone payment'] },
     { icon: '👥', text: 'Pay contacts', route: '/pay-contacts', commands: ['pay contacts', 'contact payment'] },
     { icon: '🏦', text: 'Bank transfer', route: '/bank-transfer', commands: ['transfer', 'bank transfer'] },
-    { icon: '💰', text: 'Check Balance', route: '/check-balance', commands: ['balance', 'check balance'] }
+    { icon: '💰', text: 'Check Balance', route: '/check-balance', commands: ['balance', 'check balance'] },
+    { icon: '👥', text: 'Assistance', route: '/assistant', commands: ['assistance', 'assistant'] },
   ];
 
   // Text-to-speech function
