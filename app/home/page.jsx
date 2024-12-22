@@ -17,7 +17,7 @@ export default function HomePage() {
     { icon: '👥', text: 'Pay contacts', route: '/pay-contacts', commands: ['pay contacts', 'contact payment'] },
     { icon: '🏦', text: 'Bank transfer', route: '/bank-transfer', commands: ['transfer', 'bank transfer'] },
     { icon: '💰', text: 'Check Balance', route: '/check-balance', commands: ['balance', 'check balance'] },
-    { icon: '👥', text: 'Assistance', route: '/assistant', commands: ['assistance', 'assistant'] },
+    { icon: '🤖', text: 'Assistance', route: '/assistant', commands: ['assistance', 'assistant', 'help me'] },
   ];
 
   // Text-to-speech function
@@ -33,13 +33,11 @@ export default function HomePage() {
     if (!initialAnnouncementMade.current) {
       const welcomeMessage = `Welcome to banking services. Available options are: ${
         bankingServices.map(service => service.text).join(', ')
-      }. Say 'help' anytime to hear the commands again.`;
+      }. Say 'assistant' or 'help me' anytime to get personalized assistance.`;
       
-      // Small delay to ensure speech synthesis is ready
       setTimeout(() => {
         speak(welcomeMessage);
         initialAnnouncementMade.current = true;
-        // Automatically start listening after the welcome message
         startRecording();
       }, 1000);
     }
@@ -51,7 +49,14 @@ export default function HomePage() {
 
     // Help command
     if (lowerCommand.includes('help')) {
-      speak("Available commands are: check balance, transfer money, scan QR code, pay contacts, pay phone number.");
+      speak("Available commands are: check balance, transfer money, scan QR code, pay contacts, pay phone number, and assistant.");
+      return;
+    }
+
+    // Specific handling for assistant
+    if (lowerCommand.includes('assistant') || lowerCommand.includes('help me')) {
+      speak("Opening virtual assistant to help you with your banking needs");
+      router.push('/assistant');
       return;
     }
 
@@ -73,7 +78,6 @@ export default function HomePage() {
     recognitionRef.current.interimResults = true;
 
     recognitionRef.current.onstart = () => {
-      // Don't announce anything on start to avoid interrupting the user
       console.log("Voice recognition started");
     };
 
@@ -86,12 +90,10 @@ export default function HomePage() {
     recognitionRef.current.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
       setIsRecording(false);
-      // Attempt to restart recognition after error
       setTimeout(startRecording, 1000);
     };
 
     recognitionRef.current.onend = () => {
-      // Automatically restart recognition if it ends
       if (isRecording) {
         recognitionRef.current.start();
       }
@@ -123,18 +125,27 @@ export default function HomePage() {
         <h1 className="text-2xl font-bold text-blue-600 mb-6">Banking Services</h1>
 
         {/* Banking Services Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
           {bankingServices.map((service, index) => (
             <div
               key={index}
-              className="bg-blue-50 p-4 rounded-lg text-center hover:bg-blue-100 transition-colors cursor-pointer"
+              className={`${
+                service.text === 'Assistance' 
+                  ? 'bg-blue-100 border-2 border-blue-400' 
+                  : 'bg-blue-50'
+              } p-4 rounded-lg text-center hover:bg-blue-100 transition-colors cursor-pointer`}
               onClick={() => {
+                speak(`Opening ${service.text}`);
                 router.push(service.route);
               }}
-              // Remove onMouseEnter to avoid interrupting voice commands
             >
               <div className="text-2xl mb-2">{service.icon}</div>
               <div className="text-sm font-medium text-blue-800">{service.text}</div>
+              {service.text === 'Assistance' && (
+                <div className="text-xs text-blue-600 mt-1">
+                  Available 24/7
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -153,7 +164,7 @@ export default function HomePage() {
             onClick={isRecording ? stopRecording : startRecording}
             className={`flex items-center justify-center ${
               isRecording ? 'bg-red-400 hover:bg-red-500' : 'bg-blue-400 hover:bg-blue-500'
-            } rounded-full w-16 h-16 focus:outline-none`}
+            } rounded-full w-16 h-16 focus:outline-none transition-colors duration-200`}
           >
             {isRecording ? (
               <svg className="h-8 w-8" viewBox="0 0 24 24">
